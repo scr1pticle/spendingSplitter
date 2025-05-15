@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
+using System.Collections;
+using api.Services;
 
 namespace api.Controllers
 {
@@ -14,10 +11,12 @@ namespace api.Controllers
     public class GroupsController : ControllerBase
     {
         private readonly SplitterContext _context;
+        private readonly IGroupService _groupService;
 
-        public GroupsController(SplitterContext context)
+        public GroupsController(SplitterContext context, IGroupService groupService)
         {
             _context = context;
+            _groupService = groupService;
         }
 
         // GET: api/Groups
@@ -27,31 +26,42 @@ namespace api.Controllers
             return await _context.Groups.ToListAsync();
         }
 
+        [HttpPost("{groupId}/members")]
+        public async Task<ActionResult<Member>> AddMember(int groupId, MemberDTO memberDTO){
+            var member = await _groupService.AddMemberAsync(groupId, memberDTO);
+            if(member == null) return NotFound();
+
+            return CreatedAtAction("GetMember", "Members", new { id = member.Id }, new MemberResponseDTO{
+                Id = member.Id,
+                Name = member.Name,
+                GroupId = member.GroupId
+            });
+        }
+        [HttpGet("{id}/members")]
+        public async Task<ActionResult<IEnumerable<MemberResponseDTO>>> GetMembers(int id){
+            var members = await _groupService.GetMembersAsync(id);
+            if(members == null) return NotFound();
+            return Ok(members);
+        }
+
         // GET: api/Groups/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Group>> GetGroup(long id)
+        public async Task<ActionResult<Group>> GetGroup(int id)
         {
-            var @group = await _context.Groups.FindAsync(id);
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) return NotFound();
 
-            if (@group == null)
-            {
-                return NotFound();
-            }
-
-            return @group;
+            return group;
         }
 
         // PUT: api/Groups/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGroup(long id, Group @group)
+        public async Task<IActionResult> PutGroup(int id, Group group)
         {
-            if (id != @group.Id)
-            {
-                return BadRequest();
-            }
+            if (id != group.Id) return BadRequest();
 
-            _context.Entry(@group).State = EntityState.Modified;
+            _context.Entry(group).State = EntityState.Modified;
 
             try
             {
@@ -60,13 +70,9 @@ namespace api.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!GroupExists(id))
-                {
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
             return NoContent();
@@ -75,31 +81,31 @@ namespace api.Controllers
         // POST: api/Groups
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Group>> PostGroup(Group @group)
+        public async Task<ActionResult<GroupDTO>> PostGroup(GroupDTO groupDTO)
         {
-            _context.Groups.Add(@group);
+            var group = new Group{
+                Name = groupDTO.Name
+            };
+            _context.Groups.Add(group);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGroup), new { id = @group.Id }, @group);
+            return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, group);
         }
 
         // DELETE: api/Groups/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGroup(long id)
+        public async Task<IActionResult> DeleteGroup(int id)
         {
-            var @group = await _context.Groups.FindAsync(id);
-            if (@group == null)
-            {
-                return NotFound();
-            }
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) return NotFound();
 
-            _context.Groups.Remove(@group);
+            _context.Groups.Remove(group);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-        private bool GroupExists(long id)
+        
+        private bool GroupExists(int id)
         {
             return _context.Groups.Any(e => e.Id == id);
         }
