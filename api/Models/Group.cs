@@ -2,7 +2,8 @@ namespace api.Models
 {
     public class Group
     {
-        public long Id { get; set; }
-        public required string Name {get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public ICollection<Member> Members { get; } = new List<Member>();
     }
 }
