@@ -7,6 +7,6 @@ namespace api.Models
         public Transaction Transaction { get; set; } = null!;
         public int MemberId { get; set; }
         public Member Member { get; set; } = null!;
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
     }
 }
