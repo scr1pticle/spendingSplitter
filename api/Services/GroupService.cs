@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
-using System.Collections;
 
 namespace api.Services{
     public class GroupService : IGroupService
@@ -12,32 +10,31 @@ namespace api.Services{
         {
             _context = context;
         }
-
-        public async Task<Member?> AddMemberAsync(int groupId, MemberDTO memberDTO){
-            var group = await _context.Groups.FindAsync(groupId);
-            if(group == null) return null;
-            Member member = new()
-            {
-                Group = group,
-                Name = memberDTO.Name
-            };
-            group.Members.Add(member);
-            _context.Members.Add(member);
-            await _context.SaveChangesAsync();
-            return member;
+        public async Task<IEnumerable<Group>> GetGroupsAsync(){
+            return await _context.Groups.ToListAsync();
         }
 
-        public async Task<IEnumerable<MemberResponseDTO>?> GetMembersAsync(int id){
-            var group = await _context.Groups.Include(g => g.Members).FirstOrDefaultAsync(g => g.Id == id);
-            if(group == null) return null;
-            var members = group.Members;
-            if(members.Count <= 0) return [];
-            return group.Members.Select(member => new MemberResponseDTO
-            {
-                Id = member.Id,
-                Name = member.Name,
-                GroupId = member.GroupId
-            }).ToList();
+        public async Task<Group?> GetGroupAsync(int id){
+            return await _context.Groups.FindAsync(id);
+        }
+
+        public async Task<Group> PostGroupAsync(GroupDTO groupDTO){
+            var group = new Group{
+                Name = groupDTO.Name
+            };
+            _context.Groups.Add(group);
+            await _context.SaveChangesAsync();
+
+            return group;
+        }
+
+        public async Task<bool> DeleteGroupAsync(int id){
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) return false;
+
+            _context.Groups.Remove(group);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
