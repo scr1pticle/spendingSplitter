@@ -9,6 +9,7 @@ namespace api.Models
         public int PayerMemberId { get; set; }
         public Member PayerMember { get; set; } = null!;
         public decimal FullAmount { get; set; }
+        public ICollection<Share> Shares { get; set; } = new List<Share>();
 
     }
 }

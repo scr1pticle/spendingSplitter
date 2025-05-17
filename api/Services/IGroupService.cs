@@ -1,12 +1,11 @@
+using api.DTOs;
 using api.Models;
 
 namespace api.Services{
     public interface IGroupService{
-        Task<IEnumerable<Group>> GetGroupsAsync();
-        Task<Group?> GetGroupAsync(int id);
-        Task<GroupDTO> PostGroupAsync(GroupDTO groupDTO);
+        Task<IEnumerable<GroupReadDTO>> GetGroupsAsync();
+        Task<GroupReadDTO?> GetGroupAsync(int id);
+        Task<GroupReadDTO> PostGroupAsync(GroupCreateDTO groupDTO);
         Task<bool> DeleteGroupAsync(int id);
-        Task<bool> GroupExistsAsync(int id);
-
     }
 }

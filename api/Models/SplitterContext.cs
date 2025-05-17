@@ -13,6 +13,6 @@ namespace api.Models
         public DbSet<Group> Groups { get; set; } = null!;
         public DbSet<Member> Members { get; set; } = null!;
         public DbSet<Transaction> Transactions { get; set; } = null!;
-        public DbSet<TransactionShare> TransactionShares { get; set; } = null!;
+        public DbSet<Share> Shares { get; set; } = null!;
     }
 }

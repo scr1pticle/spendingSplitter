@@ -1,6 +1,6 @@
 namespace api.Models
 {
-    public class TransactionShare
+    public class Share
     {
         public int Id { get; set; }
         public int TransactionId { get; set; }
