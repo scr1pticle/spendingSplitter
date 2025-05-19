@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+body {
+  font-family: "Quicksand", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+.btn{
+  font-weight: 700;
+}
+.group{
+  transition: box-shadow 0.3s;
+}
+.group:hover{
+  cursor:pointer;
+  box-shadow: 0 0 30px -10px rgb(78, 184, 255);
+}
