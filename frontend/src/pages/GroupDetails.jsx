@@ -91,7 +91,7 @@ export default function Group() {
 	function handleSettlement(e){
 		e.preventDefault();
 		const payer = new FormData(e.target).get("payer");
-		const payee = payer == selfMember ? selectedMember : selfMember;
+		const payee = payer == selfMember.id ? selectedMember : selfMember;
 		fetch(`/api/groups/${groupId}/transactions`, {
             method:"POST",
             headers: {

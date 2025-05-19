@@ -59,7 +59,11 @@ export default function Group() {
                 shares: transShares
             })
             })
-            .then()
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();})
 			.then(navigate(`/group/${groupId}`));
     }
 

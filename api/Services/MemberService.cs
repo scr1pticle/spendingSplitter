@@ -31,20 +31,29 @@ namespace api.Services{
         }
 
         public async Task<IEnumerable<MemberReadDTO>?> GetMembersAsync(int id){
+            var selfMemberId = await _context.Members
+                .Where(m => m.GroupId == id && m.IsSelf)
+                .Select(m => m.Id)
+                .FirstOrDefaultAsync();
+
             var members = await _context.Members
-            .Where(m => m.GroupId == id)
-            .Select(m => new MemberReadDTO{
-                Id = m.Id,
-                Name = m.Name,
-                IsSelf = m.IsSelf,
-                Balance = 
-                    m.Shares.Sum(s => s.Amount)
-                    - m.Transactions
-                        .Where(t => t.PayerMemberId == m.Id)
-                        .Sum(t => t.FullAmount)
-            })
-            .ToListAsync();
-            if(members.Count <= 0) return [];
+                .Where(m => m.GroupId == id)
+                .Select(m => new MemberReadDTO
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    IsSelf = m.IsSelf,
+
+                    Balance = 
+                        _context.Shares
+                            .Where(s => s.Transaction.PayerMemberId == selfMemberId && s.MemberId == m.Id)
+                            .Sum(s => s.Amount)
+                        -
+                        _context.Shares
+                            .Where(s => s.Transaction.PayerMemberId == m.Id && s.MemberId == selfMemberId)
+                            .Sum(s => s.Amount)
+                })
+                .ToListAsync();
             return members;
         }
 
