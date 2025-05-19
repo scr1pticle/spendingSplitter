@@ -3,7 +3,8 @@ namespace api.DTOs{
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
-        public int GroupId { get; set; }
+        public decimal Balance { get; set; }
+        public bool IsSelf { get; set; }
     }
 }
 
