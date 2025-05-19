@@ -9,8 +9,10 @@ namespace api.Mappings{
         {
             CreateMap<Group,  GroupReadDTO>();
             CreateMap<Member, MemberReadDTO>();
-            CreateMap<Transaction, TransactionReadDTO>();
-            CreateMap<Share, ShareReadDTO>();
+            CreateMap<Transaction, TransactionReadDTO>()
+                .ForMember(dest => dest.PayerName, opt => opt.MapFrom(src => src.PayerMember.Name));
+            CreateMap<Share, ShareReadDTO>()
+                .ForMember(dest => dest.MemberName, opt => opt.MapFrom(src => src.Member.Name));
             CreateMap<ShareCreateDTO, Share>();
         }
     }
