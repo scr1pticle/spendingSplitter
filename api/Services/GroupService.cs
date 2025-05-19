@@ -16,7 +16,19 @@ namespace api.Services{
             _mapper = mapper;
         }
         public async Task<IEnumerable<GroupReadDTO>> GetGroupsAsync(){
-            return await _context.Groups.ProjectTo<GroupReadDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            return await _context.Groups
+                .Select(g => new GroupReadDTO {
+                    Id   = g.Id,
+                    Name = g.Name,
+                    Balance = g.Members
+                        .Where(m => m.IsSelf)
+                        .Select(m =>
+                            m.Shares.Sum(s => s.Amount)
+                            - m.Transactions.Sum(t => t.FullAmount)
+                        )
+                .FirstOrDefault()
+            })
+            .ToListAsync();
         }
 
         public async Task<GroupReadDTO?> GetGroupAsync(int id){
@@ -29,6 +41,11 @@ namespace api.Services{
             var group = new Group{
                 Name = createDTO.Name
             };
+            var member = new Member{
+                Name = "You",
+                IsSelf = true
+            };
+            group.Members.Add(member);
             _context.Groups.Add(group);
             await _context.SaveChangesAsync();
 

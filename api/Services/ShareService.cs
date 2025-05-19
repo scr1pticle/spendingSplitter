@@ -28,9 +28,9 @@ namespace api.Services
         }
 
         public async Task<IEnumerable<ShareReadDTO>?> GetSharesAsync(int id){
-            var transaction = await _context.Transactions.Include(t => t.Shares).FirstOrDefaultAsync(t => t.Id == id);
-            if(transaction == null) return null;
-            return _mapper.Map<IEnumerable<Share>, IEnumerable<ShareReadDTO>>(transaction.Shares);
+            var shares = await _context.Shares.Where(s => s.TransactionId == id).ToListAsync();
+            if(shares == null) return null;
+            return _mapper.Map<IEnumerable<Share>, IEnumerable<ShareReadDTO>>(shares);
         }
 
         public async Task<bool> RemoveShareAsync(int id){

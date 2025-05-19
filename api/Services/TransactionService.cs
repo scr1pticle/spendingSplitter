@@ -28,27 +28,60 @@ namespace api.Services
                 FullAmount = createDTO.FullAmount,
                 Shares = new List<Share>()
             };
-            foreach(var createDTOShare in createDTO.Shares){
-                var member = await _context.Members.FindAsync(createDTOShare.MemberId);
-                if(member == null) continue;
-                var share = new Share(){
-                    Transaction = transaction,
-                    Member = member,
-                    Amount = createDTOShare.Amount
-                };
-                _context.Shares.Add(share);
-                transaction.Shares.Append(share);
+            if(createDTO.SplitType == "equal"){
+                var groupMembers = await _context.Members.
+                    Where(m => m.GroupId == groupId)
+                    .ToListAsync();
+                decimal eachAmount = createDTO.FullAmount/groupMembers.Count;
+                
+                foreach(var member in groupMembers){
+                    var share = new Share(){
+                        Transaction = transaction,
+                        Member = member,
+                        Amount = eachAmount
+                    };
+                    _context.Shares.Add(share);
+                }
             }
+            else if(createDTO.SplitType == "exact"){
+                foreach(var createDTOShare in createDTO.Shares){
+                    var member = await _context.Members.FindAsync(createDTOShare.MemberId);
+                    if(member == null || createDTOShare.Amount == 0) continue;
+                    var share = new Share(){
+                        Transaction = transaction,
+                        Member = member,
+                        Amount = createDTOShare.Amount
+                    };
+                    _context.Shares.Add(share);
+                }
+            }
+            else{
+                foreach(var createDTOShare in createDTO.Shares){
+                    var member = await _context.Members.FindAsync(createDTOShare.MemberId);
+                    if(member == null || createDTOShare.Amount == 0) continue;
+                    var share = new Share(){
+                        Transaction = transaction,
+                        Member = member,
+                        Amount = createDTO.FullAmount*(createDTOShare.Amount/100)
+                    };
+                    _context.Shares.Add(share);
+                }
+            }
+            
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
             return _mapper.Map<TransactionReadDTO>(transaction);
         }
 
         public async Task<IEnumerable<TransactionReadDTO>?> GetTransactionsAsync(int id){
-            var group = await _context.Groups.Include(g => g.Transactions).FirstOrDefaultAsync(g => g.Id == id);
-            if(group == null) return null;
-            var transactions = group.Transactions;
-            if(transactions.Count <= 0) return [];
+            var transactions = await _context.Transactions
+                .Where(t => t.GroupId == id)
+                .Include(t => t.PayerMember)
+                .Include(t => t.Shares)
+                    .ThenInclude(s => s.Member)
+                .ToListAsync();
+            if (transactions.Count == 0) return [];
+
             return _mapper.Map<IEnumerable<Transaction>, IEnumerable<TransactionReadDTO>>(transactions);
         }
 
